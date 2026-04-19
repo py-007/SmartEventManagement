@@ -1,0 +1,169 @@
+{% extends 'ems/base.html' %}
+{% block title %}Analytics — EMS{% endblock %}
+
+{% block extra_css %}
+<style>
+  .chart-card { background:#fff; border-radius:16px; border:1px solid #e9ecef; padding:1.5rem; box-shadow:0 2px 12px rgba(0,0,0,.05); }
+  .chart-title { font-family:'Syne',sans-serif; font-weight:700; font-size:1rem; margin-bottom:1rem; color:#1a1a2e; }
+  .gauge-value { font-size:2.5rem; font-weight:800; font-family:'Syne',sans-serif; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-bar-chart-line me-2"></i>Analytics Dashboard</h1>
+    <div class="text-muted small">Live data from your events</div>
+  </div>
+
+  <!-- Loading state -->
+  <div id="analytics-loading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status"></div>
+    <p class="mt-2 text-muted">Loading analytics…</p>
+  </div>
+
+  <div id="analytics-content" style="display:none">
+    <!-- Row 1: Category + Monthly -->
+    <div class="row g-4 mb-4">
+      <div class="col-lg-5">
+        <div class="chart-card h-100">
+          <div class="chart-title">📊 Events by Category</div>
+          <div id="chart_category" style="height:280px"></div>
+        </div>
+      </div>
+      <div class="col-lg-7">
+        <div class="chart-card h-100">
+          <div class="chart-title">📈 Monthly Registrations (12 months)</div>
+          <div id="chart_monthly" style="height:280px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Row 2: Event Bar + Gauge -->
+    <div class="row g-4">
+      <div class="col-lg-7">
+        <div class="chart-card h-100">
+          <div class="chart-title">🏆 Top Events by Registrations</div>
+          <div id="chart_events" style="height:280px"></div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="chart-card h-100 text-center">
+          <div class="chart-title">🎯 Overall Seat Occupancy</div>
+          <div id="chart_gauge" style="height:220px"></div>
+          <div id="occupancy_stats" class="mt-2"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load('current', {packages: ['corechart', 'bar', 'gauge']});
+google.charts.setOnLoadCallback(loadAllCharts);
+
+async function fetchJson(url) {
+  const res = await fetch(url);
+  return res.json();
+}
+
+async function loadAllCharts() {
+  try {
+    const [catData, monthData, eventData, occupancyData] = await Promise.all([
+      fetchJson('{% url "api_categories" %}'),
+      fetchJson('{% url "api_monthly" %}'),
+      fetchJson('{% url "api_events" %}'),
+      fetchJson('{% url "api_occupancy" %}'),
+    ]);
+
+    drawCategoryPie(catData.data);
+    drawMonthlyLine(monthData.data);
+    drawEventBar(eventData.data);
+    drawGauge(occupancyData.occupancy, occupancyData.confirmed, occupancyData.total);
+
+    document.getElementById('analytics-loading').style.display = 'none';
+    document.getElementById('analytics-content').style.display = 'block';
+  } catch(e) {
+    document.getElementById('analytics-loading').innerHTML =
+      '<p class="text-danger"><i class="bi bi-exclamation-circle me-2"></i>Failed to load analytics. Please refresh.</p>';
+  }
+}
+
+function drawCategoryPie(rows) {
+  if (!rows.length) return;
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Category');
+  data.addColumn('number', 'Events');
+  data.addRows(rows);
+  const chart = new google.visualization.PieChart(document.getElementById('chart_category'));
+  chart.draw(data, {
+    pieHole: 0.4,
+    legend: {position: 'right'},
+    chartArea: {width:'85%', height:'85%'},
+    colors: ['#4361ee','#7209b7','#f72585','#4cc9f0','#06d6a0','#ffd60a','#e63946','#2ec4b6'],
+    fontName: 'DM Sans',
+  });
+}
+
+function drawMonthlyLine(rows) {
+  if (!rows.length) return;
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Month');
+  data.addColumn('number', 'Registrations');
+  data.addRows(rows);
+  const chart = new google.visualization.LineChart(document.getElementById('chart_monthly'));
+  chart.draw(data, {
+    curveType: 'function',
+    legend: {position: 'none'},
+    chartArea: {width:'85%', height:'75%'},
+    colors: ['#4361ee'],
+    lineWidth: 3,
+    pointSize: 6,
+    backgroundColor: 'transparent',
+    fontName: 'DM Sans',
+    vAxis: {minValue: 0, gridlines: {color: '#f0f0f0'}},
+    hAxis: {textStyle: {fontSize: 11}},
+  });
+}
+
+function drawEventBar(rows) {
+  if (!rows.length) return;
+  const data = new google.visualization.DataTable();
+  data.addColumn('string', 'Event');
+  data.addColumn('number', 'Registrations');
+  data.addRows(rows);
+  const chart = new google.visualization.BarChart(document.getElementById('chart_events'));
+  chart.draw(data, {
+    legend: {position: 'none'},
+    chartArea: {width:'60%', height:'80%'},
+    colors: ['#7209b7'],
+    backgroundColor: 'transparent',
+    fontName: 'DM Sans',
+    hAxis: {minValue: 0, gridlines: {color: '#f0f0f0'}},
+    bar: {groupWidth: '60%'},
+  });
+}
+
+function drawGauge(occupancy, confirmed, total) {
+  const data = google.visualization.arrayToDataTable([
+    ['Label', 'Value'],
+    ['Occupancy', occupancy],
+  ]);
+  const chart = new google.visualization.Gauge(document.getElementById('chart_gauge'));
+  chart.draw(data, {
+    min: 0, max: 100,
+    yellowFrom: 70, yellowTo: 90,
+    redFrom: 90, redTo: 100,
+    greenFrom: 0, greenTo: 70,
+    majorTicks: ['0','20','40','60','80','100'],
+    minorTicks: 5,
+    width: 240, height: 200,
+  });
+  document.getElementById('occupancy_stats').innerHTML =
+    `<span class="text-muted">${confirmed} confirmed of ${total} total seats</span>`;
+}
+</script>
+{% endblock %}

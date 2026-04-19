@@ -1,0 +1,185 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}{{ event.title }} — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'event_list' %}">Events</a></li>
+      <li class="breadcrumb-item active">{{ event.title|truncatechars:40 }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-4">
+    <!-- ── LEFT: Event Info ──────────────────── -->
+    <div class="col-lg-8">
+      <div class="ems-card p-4">
+        {% if event.banner %}
+        <img src="{{ event.banner.url }}" alt="{{ event.title }}" class="event-banner mb-4"/>
+        {% endif %}
+
+        <div class="d-flex flex-wrap gap-2 mb-3">
+          <span class="event-category-badge">{{ event.get_category_display }}</span>
+          <span class="badge bg-{{ event.status|badge_color }}">{{ event.get_status_display }}</span>
+          {% if event.is_past %}<span class="badge bg-secondary">Past Event</span>{% endif %}
+        </div>
+
+        <h1 class="event-detail-title">{{ event.title }}</h1>
+
+        <div class="event-info-grid my-4">
+          <div class="info-item">
+            <i class="bi bi-calendar3"></i>
+            <div>
+              <div class="label">Date & Time</div>
+              <div class="value">{{ event.date|date:"l, F j, Y" }} at {{ event.date|date:"g:i A" }}</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-geo-alt"></i>
+            <div>
+              <div class="label">Venue</div>
+              <div class="value">{{ event.venue }}</div>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-people"></i>
+            <div>
+              <div class="label">Seats</div>
+              <div class="value">
+                {{ event.confirmed_registrations }} / {{ event.total_seats }} registered
+                {% if event.is_full %}
+                  <span class="badge bg-danger ms-1">Full</span>
+                {% else %}
+                  <span class="badge bg-success ms-1">{{ event.available_seats }} left</span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="bi bi-person-badge"></i>
+            <div>
+              <div class="label">Organized by</div>
+              <div class="value">{{ event.created_by.get_full_name|default:event.created_by.username }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Occupancy Bar -->
+        <div class="mb-4">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="text-muted">Seat Occupancy</small>
+            <small class="fw-600">{{ event.occupancy_percentage }}%</small>
+          </div>
+          <div class="progress" style="height:8px">
+            <div class="progress-bar bg-{{ event.occupancy_percentage|occupancy_color }}"
+                 style="width:{{ event.occupancy_percentage }}%"></div>
+          </div>
+        </div>
+
+        <h5 class="mb-3">About This Event</h5>
+        <div class="event-description">{{ event.description|linebreaks }}</div>
+
+        {% if event.tags %}
+        <div class="mt-3">
+          {% for tag in event.tags.split %}
+          <span class="badge bg-light text-dark border me-1">{{ tag|cut:"," }}</span>
+          {% endfor %}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- ── RIGHT: Registration Panel ─────────── -->
+    <div class="col-lg-4">
+      <div class="ems-card registration-panel">
+        <h5 class="mb-4"><i class="bi bi-ticket-perforated me-2"></i>Registration</h5>
+
+        {% if user.is_authenticated %}
+          {% if user_role == 'manager' or user_role == 'admin' %}
+            <!-- Manager Controls -->
+            <div class="alert alert-info small">
+              <i class="bi bi-info-circle me-1"></i>
+              As a {{ user_role|title }}, you manage events rather than register for them.
+            </div>
+            {% if event.created_by == user or user_role == 'admin' %}
+            <div class="d-grid gap-2 mt-3">
+              <a href="{% url 'event_edit' event.slug %}" class="btn btn-outline-primary">
+                <i class="bi bi-pencil me-2"></i>Edit Event
+              </a>
+              <a href="{% url 'event_registrations' event.slug %}" class="btn btn-outline-info">
+                <i class="bi bi-people me-2"></i>View Attendees ({{ event.confirmed_registrations }})
+              </a>
+              <a href="{% url 'event_delete' event.slug %}" class="btn btn-outline-danger">
+                <i class="bi bi-trash me-2"></i>Delete Event
+              </a>
+            </div>
+            {% endif %}
+
+          {% elif user_registration %}
+            <!-- Already Registered -->
+            <div class="alert alert-{% if user_registration.status == 'confirmed' %}success{% elif user_registration.status == 'waitlisted' %}warning{% else %}secondary{% endif %}">
+              <strong>
+                {% if user_registration.status == 'confirmed' %}✅ You're registered!
+                {% elif user_registration.status == 'waitlisted' %}📋 You're on the waitlist
+                {% else %}❌ Registration cancelled
+                {% endif %}
+              </strong>
+            </div>
+            <div class="reg-id-box">
+              <small class="text-muted">Registration ID</small>
+              <div class="fw-bold font-monospace">{{ user_registration.registration_id }}</div>
+            </div>
+            {% if user_registration.status != 'cancelled' %}
+            <form method="post" action="{% url 'cancel_registration' user_registration.registration_id %}"
+                  onsubmit="return confirm('Cancel your registration?')">
+              {% csrf_token %}
+              <button class="btn btn-outline-danger w-100 mt-3">
+                <i class="bi bi-x-circle me-2"></i>Cancel Registration
+              </button>
+            </form>
+            {% endif %}
+
+          {% elif event.is_past %}
+            <div class="alert alert-secondary">This event has already taken place.</div>
+
+          {% elif event.status != 'published' %}
+            <div class="alert alert-warning">This event is not currently accepting registrations.</div>
+
+          {% else %}
+            <!-- Register Button -->
+            {% if event.is_full %}
+            <div class="alert alert-warning">
+              <i class="bi bi-people-fill me-1"></i>
+              <strong>Event is full!</strong> You can join the waitlist.
+            </div>
+            {% endif %}
+            <form method="post" action="{% url 'register_for_event' event.slug %}">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-primary w-100 btn-lg">
+                {% if event.is_full %}
+                <i class="bi bi-list-ol me-2"></i>Join Waitlist
+                {% else %}
+                <i class="bi bi-ticket-perforated me-2"></i>Register Now
+                {% endif %}
+              </button>
+            </form>
+          {% endif %}
+
+        {% else %}
+          <!-- Not Logged In -->
+          <div class="text-center py-3">
+            <p class="text-muted mb-3">You need to be logged in to register.</p>
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-primary w-100">
+              <i class="bi bi-box-arrow-in-right me-2"></i>Login to Register
+            </a>
+            <a href="{% url 'register' %}" class="btn btn-outline-primary w-100 mt-2">
+              Create Account
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

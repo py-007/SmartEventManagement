@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:#f8f9fa; margin:0; padding:0; }
+    .container { max-width:580px; margin:40px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+    .header { background:linear-gradient(135deg, #4361ee, #7209b7); padding:36px 40px; text-align:center; }
+    .header h1 { color:#fff; margin:0; font-size:1.6rem; }
+    .header p { color:rgba(255,255,255,.8); margin:6px 0 0; }
+    .body { padding:36px 40px; }
+    .reg-box { background:#f0f4ff; border-radius:12px; padding:20px 24px; margin:24px 0; text-align:center; }
+    .reg-id { font-size:1.6rem; font-weight:800; color:#4361ee; font-family:monospace; letter-spacing:2px; }
+    .info-row { display:flex; gap:12px; margin:8px 0; align-items:flex-start; }
+    .info-icon { color:#4361ee; font-size:1.1rem; flex-shrink:0; }
+    .info-text { color:#444; font-size:0.97rem; }
+    .btn { display:inline-block; background:#4361ee; color:#fff!important; padding:13px 32px; border-radius:8px; text-decoration:none; font-weight:600; margin:20px 0; }
+    .footer { text-align:center; padding:20px 40px; color:#aaa; font-size:0.82rem; background:#f8f9fa; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>✅ Registration Confirmed!</h1>
+    <p>You're all set for {{ event.title }}</p>
+  </div>
+  <div class="body">
+    <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+    <p>Great news! Your registration has been confirmed. Here are your details:</p>
+
+    <div class="reg-box">
+      <div style="color:#666;font-size:.85rem;margin-bottom:6px;">YOUR REGISTRATION ID</div>
+      <div class="reg-id">{{ registration.registration_id }}</div>
+      <div style="color:#888;font-size:.82rem;margin-top:6px;">Keep this for your records</div>
+    </div>
+
+    <div class="info-row">
+      <div class="info-icon">📅</div>
+      <div class="info-text"><strong>Date:</strong> {{ event.date|date:"l, F j, Y" }} at {{ event.date|date:"g:i A" }}</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">📍</div>
+      <div class="info-text"><strong>Venue:</strong> {{ event.venue }}</div>
+    </div>
+    <div class="info-row">
+      <div class="info-icon">🏷️</div>
+      <div class="info-text"><strong>Category:</strong> {{ event.get_category_display }}</div>
+    </div>
+
+    <p style="margin-top:24px;">We look forward to seeing you there! If you need to cancel, you can do so from your dashboard.</p>
+
+    <div style="text-align:center">
+      <a href="#" class="btn">View My Dashboard</a>
+    </div>
+  </div>
+  <div class="footer">
+    © EMS — Event Management System<br/>
+    This is an automated email, please do not reply.
+  </div>
+</div>
+</body>
+</html>

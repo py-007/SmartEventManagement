@@ -1,0 +1,38 @@
+{% load ems_tags %}
+<div class="event-card h-100">
+  <div class="event-card-header">
+    <span class="event-category-badge">{{ event.get_category_display }}</span>
+    {% if event.is_full %}
+      <span class="badge bg-danger ms-1">Sold Out</span>
+    {% elif event.occupancy_percentage >= 80 %}
+      <span class="badge bg-warning text-dark ms-1">Almost Full</span>
+    {% endif %}
+  </div>
+  <div class="event-card-body">
+    <h5 class="event-title">
+      <a href="{% url 'event_detail' event.slug %}">{{ event.title }}</a>
+    </h5>
+    <div class="event-meta">
+      <span><i class="bi bi-calendar3 me-1"></i>{{ event.date|date:"M d, Y" }}</span>
+      <span><i class="bi bi-clock me-1"></i>{{ event.date|date:"g:i A" }}</span>
+    </div>
+    <div class="event-meta">
+      <span><i class="bi bi-geo-alt me-1"></i>{{ event.venue|truncatechars:35 }}</span>
+    </div>
+    <div class="d-flex justify-content-between align-items-center mt-3">
+      <div class="seat-info">
+        <small class="text-muted">
+          <i class="bi bi-people me-1"></i>
+          {{ event.confirmed_registrations }}/{{ event.total_seats }} registered
+        </small>
+        <div class="progress seat-progress mt-1">
+          <div class="progress-bar bg-{{ event.occupancy_percentage|occupancy_color }}"
+               style="width: {{ event.occupancy_percentage }}%"></div>
+        </div>
+      </div>
+      <a href="{% url 'event_detail' event.slug %}" class="btn btn-sm btn-primary">
+        View <i class="bi bi-arrow-right ms-1"></i>
+      </a>
+    </div>
+  </div>
+</div>

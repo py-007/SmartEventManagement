@@ -1,0 +1,61 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}My Registrations — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-ticket-perforated me-2"></i>My Registrations</h1>
+    <a href="{% url 'event_list' %}" class="btn btn-outline-primary">
+      <i class="bi bi-search me-1"></i>Browse Events
+    </a>
+  </div>
+
+  {% if registrations %}
+  <div class="row g-4">
+    {% for reg in registrations %}
+    <div class="col-md-6 col-xl-4">
+      <div class="reg-ticket {% if reg.status == 'cancelled' %}reg-ticket-cancelled{% elif reg.status == 'waitlisted' %}reg-ticket-waitlist{% endif %}">
+        <div class="reg-ticket-header">
+          <span class="event-category-badge">{{ reg.event.get_category_display }}</span>
+          <span class="badge bg-{{ reg.status|badge_color }}">{{ reg.get_status_display }}</span>
+        </div>
+        <h5 class="mt-2 mb-1">{{ reg.event.title }}</h5>
+        <div class="text-muted small mb-3">
+          <i class="bi bi-calendar3 me-1"></i>{{ reg.event.date|date:"M d, Y · g:i A" }}<br/>
+          <i class="bi bi-geo-alt me-1"></i>{{ reg.event.venue|truncatechars:40 }}
+        </div>
+        <div class="reg-ticket-footer">
+          <div>
+            <small class="text-muted">Registration ID</small>
+            <div class="font-monospace fw-bold">{{ reg.registration_id }}</div>
+          </div>
+          <div class="d-flex gap-1">
+            <a href="{% url 'event_detail' reg.event.slug %}" class="btn btn-xs btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </a>
+            {% if reg.status != 'cancelled' %}
+            <form method="post" action="{% url 'cancel_registration' reg.registration_id %}"
+                  onsubmit="return confirm('Cancel this registration?')">
+              {% csrf_token %}
+              <button class="btn btn-xs btn-outline-danger" title="Cancel">
+                <i class="bi bi-x"></i>
+              </button>
+            </form>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-5">
+    <i class="bi bi-ticket-perforated display-1 text-muted"></i>
+    <h4 class="mt-3 text-muted">No registrations yet</h4>
+    <p class="text-muted">Browse upcoming events and register!</p>
+    <a href="{% url 'event_list' %}" class="btn btn-primary">Browse Events</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

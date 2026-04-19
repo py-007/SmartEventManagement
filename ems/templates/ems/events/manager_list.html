@@ -1,0 +1,77 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}My Events — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-calendar-check me-2"></i>
+      {% if user_role == 'admin' %}All Events{% else %}My Events{% endif %}
+    </h1>
+    <a href="{% url 'event_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>New Event
+    </a>
+  </div>
+
+  <div class="ems-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Seats</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for event in events %}
+          <tr>
+            <td>
+              <div class="fw-500">{{ event.title }}</div>
+              <small class="text-muted"><i class="bi bi-geo-alt me-1"></i>{{ event.venue|truncatechars:30 }}</small>
+            </td>
+            <td><span class="badge bg-light text-dark border">{{ event.get_category_display }}</span></td>
+            <td class="text-muted small">{{ event.date|date:"M d, Y" }}</td>
+            <td>
+              <div class="progress seat-progress-sm mb-1">
+                <div class="progress-bar bg-{{ event.occupancy_percentage|occupancy_color }}"
+                     style="width:{{ event.occupancy_percentage }}%"></div>
+              </div>
+              <small>{{ event.confirmed_registrations }}/{{ event.total_seats }}</small>
+            </td>
+            <td><span class="badge bg-{{ event.status|badge_color }}">{{ event.get_status_display }}</span></td>
+            <td class="text-end">
+              <div class="btn-group btn-group-sm">
+                <a href="{% url 'event_detail' event.slug %}" class="btn btn-outline-secondary" title="View">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'event_registrations' event.slug %}" class="btn btn-outline-info" title="Attendees">
+                  <i class="bi bi-people"></i>
+                </a>
+                <a href="{% url 'event_edit' event.slug %}" class="btn btn-outline-primary" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <a href="{% url 'event_delete' event.slug %}" class="btn btn-outline-danger" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </a>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center py-5">
+              <i class="bi bi-calendar-x display-4 text-muted"></i>
+              <p class="text-muted mt-2">No events yet.</p>
+              <a href="{% url 'event_create' %}" class="btn btn-primary">Create First Event</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

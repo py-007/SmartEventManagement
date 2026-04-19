@@ -1,0 +1,78 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}User Management — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-people me-2"></i>User Management</h1>
+    <div class="d-flex gap-2">
+      <a href="{% url 'export_registrations' %}" class="btn btn-outline-success btn-sm">
+        <i class="bi bi-download me-1"></i>Export Registrations
+      </a>
+      <a href="{% url 'export_events' %}" class="btn btn-outline-info btn-sm">
+        <i class="bi bi-download me-1"></i>Export Events
+      </a>
+    </div>
+  </div>
+
+  <div class="ems-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Joined</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td>
+              <div class="d-flex align-items-center gap-2">
+                <img src="{{ u.profile.get_avatar_url }}" height="34" width="34"
+                     class="rounded-circle border" alt="avatar"/>
+                <div>
+                  <div class="fw-500">{{ u.get_full_name|default:u.username }}</div>
+                  <small class="text-muted">@{{ u.username }}</small>
+                </div>
+              </div>
+            </td>
+            <td class="text-muted small">{{ u.email }}</td>
+            <td>
+              <span class="badge
+                {% if u.profile.role == 'admin' %}bg-danger
+                {% elif u.profile.role == 'manager' %}bg-primary
+                {% else %}bg-secondary{% endif %}">
+                {{ u.profile.get_role_display }}
+              </span>
+            </td>
+            <td class="text-muted small">{{ u.date_joined|date:"M d, Y" }}</td>
+            <td>
+              {% if u.is_active %}
+                <span class="badge bg-success">Active</span>
+              {% else %}
+                <span class="badge bg-danger">Inactive</span>
+              {% endif %}
+            </td>
+            <td class="text-end">
+              {% if u != request.user %}
+              <a href="{% url 'admin_user_role' u.id %}" class="btn btn-xs btn-outline-primary">
+                <i class="bi bi-shield me-1"></i>Change Role
+              </a>
+              {% else %}
+              <span class="text-muted small">(You)</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

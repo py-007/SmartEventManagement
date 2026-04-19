@@ -1,0 +1,109 @@
+{% extends 'ems/base.html' %}
+{% load static %}
+{% load ems_tags %}
+
+{% block title %}EMS — Discover & Manage Events{% endblock %}
+
+{% block content %}
+
+<!-- ── HERO ─────────────────────────────────── -->
+<section class="hero-section">
+  <div class="container">
+    <div class="row align-items-center min-vh-60">
+      <div class="col-lg-6" data-aos="fade-right">
+        <span class="hero-tag">🎉 Your next great event awaits</span>
+        <h1 class="hero-title">Manage Events<br/><span class="text-gradient">Effortlessly.</span></h1>
+        <p class="hero-subtitle">
+          EMS brings together organizers and attendees in one powerful platform.
+          Create, discover, and register for events — all in minutes.
+        </p>
+        <div class="d-flex gap-3 flex-wrap mt-4">
+          <a href="{% url 'event_list' %}" class="btn btn-primary btn-lg px-4">
+            <i class="bi bi-search me-2"></i>Browse Events
+          </a>
+          <a href="{% url 'register' %}" class="btn btn-outline-primary btn-lg px-4">
+            <i class="bi bi-person-plus me-2"></i>Get Started Free
+          </a>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-flex justify-content-center">
+        <div class="hero-illustration">
+          <i class="bi bi-calendar-event"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── STATS ─────────────────────────────────── -->
+<section class="stats-section py-5 bg-light">
+  <div class="container">
+    <div class="row text-center g-4">
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-calendar-check"></i></div>
+          <div class="stat-number">500+</div>
+          <div class="stat-label">Events Hosted</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-people"></i></div>
+          <div class="stat-number">10K+</div>
+          <div class="stat-label">Registrations</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-geo-alt"></i></div>
+          <div class="stat-number">50+</div>
+          <div class="stat-label">Cities</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon"><i class="bi bi-star-fill"></i></div>
+          <div class="stat-number">4.8★</div>
+          <div class="stat-label">Avg. Rating</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── UPCOMING EVENTS ───────────────────────── -->
+<section class="py-5">
+  <div class="container">
+    <div class="section-header">
+      <h2>Upcoming Events</h2>
+      <a href="{% url 'event_list' %}" class="btn btn-outline-primary btn-sm">View All <i class="bi bi-arrow-right ms-1"></i></a>
+    </div>
+    <div class="row g-4 mt-2">
+      {% for event in events %}
+      <div class="col-md-6 col-lg-4">
+        {% include 'ems/partials/event_card.html' %}
+      </div>
+      {% empty %}
+      <div class="col-12 text-center py-5">
+        <i class="bi bi-calendar-x display-1 text-muted"></i>
+        <p class="text-muted mt-3">No upcoming events. Check back soon!</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ───────────────────────────────────── -->
+<section class="cta-section py-5">
+  <div class="container text-center">
+    <h2 class="cta-title">Ready to organize your next event?</h2>
+    <p class="cta-subtitle">Join thousands of event managers who trust EMS.</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap mt-4">
+      <a href="{% url 'register' %}" class="btn btn-light btn-lg px-5">
+        <i class="bi bi-rocket me-2"></i>Start for Free
+      </a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

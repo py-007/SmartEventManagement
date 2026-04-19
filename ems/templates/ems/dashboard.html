@@ -1,0 +1,239 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}Dashboard — EMS{% endblock %}
+{% block nav_dashboard %}active{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <div>
+      <h1 class="page-title">
+        {% if user_role == 'admin' %}🛡️ Admin Dashboard
+        {% elif user_role == 'manager' %}📋 Manager Dashboard
+        {% else %}👋 My Dashboard
+        {% endif %}
+      </h1>
+      <p class="text-muted">Welcome back, <strong>{{ user.first_name|default:user.username }}</strong></p>
+    </div>
+    {% if user_role == 'manager' or user_role == 'admin' %}
+    <a href="{% url 'event_create' %}" class="btn btn-primary">
+      <i class="bi bi-plus-circle me-2"></i>New Event
+    </a>
+    {% endif %}
+  </div>
+
+  <!-- ── ADMIN DASHBOARD ────────────────────── -->
+  {% if user_role == 'admin' %}
+  <div class="row g-4 mb-4">
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-widget bg-primary text-white">
+        <div class="stat-widget-icon"><i class="bi bi-people-fill"></i></div>
+        <div class="stat-widget-value">{{ total_users }}</div>
+        <div class="stat-widget-label">Total Users</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-widget bg-success text-white">
+        <div class="stat-widget-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="stat-widget-value">{{ total_events }}</div>
+        <div class="stat-widget-label">Total Events</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-widget bg-info text-white">
+        <div class="stat-widget-icon"><i class="bi bi-ticket-perforated"></i></div>
+        <div class="stat-widget-value">{{ total_registrations }}</div>
+        <div class="stat-widget-label">Registrations</div>
+      </div>
+    </div>
+    <div class="col-sm-6 col-xl-3">
+      <div class="stat-widget bg-warning text-dark">
+        <div class="stat-widget-icon"><i class="bi bi-broadcast"></i></div>
+        <div class="stat-widget-value">{{ published_events }}</div>
+        <div class="stat-widget-label">Live Events</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="ems-card">
+        <div class="ems-card-header">
+          <h5><i class="bi bi-clock-history me-2"></i>Recent Registrations</h5>
+          <a href="{% url 'export_registrations' %}" class="btn btn-sm btn-outline-success">
+            <i class="bi bi-download me-1"></i>Export CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead><tr><th>ID</th><th>Attendee</th><th>Event</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              {% for reg in recent_registrations %}
+              <tr>
+                <td><code class="reg-id">{{ reg.registration_id }}</code></td>
+                <td>{{ reg.user.get_full_name|default:reg.user.username }}</td>
+                <td>{{ reg.event.title|truncatechars:30 }}</td>
+                <td><span class="badge bg-{{ reg.status|badge_color }}">{{ reg.get_status_display }}</span></td>
+                <td class="text-muted small">{{ reg.registered_at|date:"M d, Y" }}</td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No registrations yet</td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="ems-card">
+        <div class="ems-card-header">
+          <h5><i class="bi bi-calendar3 me-2"></i>Upcoming Events</h5>
+          <a href="{% url 'analytics_dashboard' %}" class="btn btn-sm btn-outline-primary">Analytics</a>
+        </div>
+        {% for event in upcoming_events %}
+        <div class="mini-event-row">
+          <div>
+            <div class="fw-500">{{ event.title|truncatechars:28 }}</div>
+            <small class="text-muted"><i class="bi bi-calendar3 me-1"></i>{{ event.date|date:"M d" }}</small>
+          </div>
+          <a href="{% url 'event_detail' event.slug %}" class="btn btn-xs btn-outline-primary">View</a>
+        </div>
+        {% empty %}
+        <p class="text-muted text-center py-3">No upcoming events</p>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ── MANAGER DASHBOARD ──────────────────── -->
+  {% elif user_role == 'manager' %}
+  <div class="row g-4 mb-4">
+    <div class="col-sm-4">
+      <div class="stat-widget bg-primary text-white">
+        <div class="stat-widget-icon"><i class="bi bi-calendar-event"></i></div>
+        <div class="stat-widget-value">{{ total_my_events }}</div>
+        <div class="stat-widget-label">My Events</div>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="stat-widget bg-success text-white">
+        <div class="stat-widget-icon"><i class="bi bi-ticket-perforated"></i></div>
+        <div class="stat-widget-value">{{ total_registrations }}</div>
+        <div class="stat-widget-label">Registrations</div>
+      </div>
+    </div>
+    <div class="col-sm-4">
+      <div class="stat-widget bg-info text-white">
+        <div class="stat-widget-icon"><i class="bi bi-broadcast"></i></div>
+        <div class="stat-widget-value">{{ upcoming_events|length }}</div>
+        <div class="stat-widget-label">Upcoming</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8">
+      <div class="ems-card">
+        <div class="ems-card-header">
+          <h5><i class="bi bi-calendar-check me-2"></i>My Events</h5>
+          <a href="{% url 'manager_events' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead><tr><th>Event</th><th>Date</th><th>Seats</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              {% for event in my_events %}
+              <tr>
+                <td class="fw-500">{{ event.title|truncatechars:30 }}</td>
+                <td class="text-muted small">{{ event.date|date:"M d, Y" }}</td>
+                <td>
+                  <div class="progress seat-progress-sm">
+                    <div class="progress-bar bg-{{ event.occupancy_percentage|occupancy_color }}"
+                         style="width:{{ event.occupancy_percentage }}%"></div>
+                  </div>
+                  <small>{{ event.confirmed_registrations }}/{{ event.total_seats }}</small>
+                </td>
+                <td><span class="badge bg-{{ event.status|badge_color }}">{{ event.get_status_display }}</span></td>
+                <td>
+                  <a href="{% url 'event_registrations' event.slug %}" class="btn btn-xs btn-outline-primary">Attendees</a>
+                </td>
+              </tr>
+              {% empty %}
+              <tr><td colspan="5" class="text-center text-muted py-3">No events yet. <a href="{% url 'event_create' %}">Create one!</a></td></tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="col-lg-4">
+      <div class="ems-card">
+        <div class="ems-card-header"><h5><i class="bi bi-lightning-charge me-2"></i>Quick Actions</h5></div>
+        <div class="d-grid gap-2 p-3">
+          <a href="{% url 'event_create' %}" class="btn btn-primary"><i class="bi bi-plus-circle me-2"></i>Create New Event</a>
+          <a href="{% url 'analytics_dashboard' %}" class="btn btn-outline-primary"><i class="bi bi-bar-chart me-2"></i>View Analytics</a>
+          <a href="{% url 'manager_events' %}" class="btn btn-outline-secondary"><i class="bi bi-list-ul me-2"></i>All My Events</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ATTENDEE DASHBOARD ─────────────────── -->
+  {% else %}
+  <div class="row g-4 mb-4">
+    <div class="col-sm-6">
+      <div class="stat-widget bg-primary text-white">
+        <div class="stat-widget-icon"><i class="bi bi-ticket-perforated"></i></div>
+        <div class="stat-widget-value">{{ total_registrations }}</div>
+        <div class="stat-widget-label">My Registrations</div>
+      </div>
+    </div>
+    <div class="col-sm-6">
+      <div class="stat-widget bg-success text-white">
+        <div class="stat-widget-icon"><i class="bi bi-calendar-check"></i></div>
+        <div class="stat-widget-value">{{ upcoming_events|length }}</div>
+        <div class="stat-widget-label">Events Available</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <div class="ems-card">
+        <div class="ems-card-header">
+          <h5><i class="bi bi-ticket-perforated me-2"></i>My Recent Registrations</h5>
+          <a href="{% url 'my_registrations' %}" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        {% for reg in my_registrations %}
+        <div class="mini-event-row">
+          <div>
+            <div class="fw-500">{{ reg.event.title|truncatechars:28 }}</div>
+            <small class="text-muted">{{ reg.event.date|date:"M d, Y" }}</small>
+            <span class="badge bg-{{ reg.status|badge_color }} ms-1">{{ reg.get_status_display }}</span>
+          </div>
+          <code class="reg-id small">{{ reg.registration_id }}</code>
+        </div>
+        {% empty %}
+        <div class="text-center py-4">
+          <i class="bi bi-ticket-perforated display-4 text-muted"></i>
+          <p class="text-muted mt-2">No registrations yet</p>
+          <a href="{% url 'event_list' %}" class="btn btn-primary btn-sm">Browse Events</a>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="col-lg-7">
+      <div class="ems-card-header mb-3">
+        <h5><i class="bi bi-calendar3 me-2"></i>Upcoming Events</h5>
+        <a href="{% url 'event_list' %}" class="btn btn-sm btn-outline-primary">Browse All</a>
+      </div>
+      <div class="row g-3">
+        {% for event in upcoming_events %}
+        <div class="col-md-6">{% include 'ems/partials/event_card.html' %}</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

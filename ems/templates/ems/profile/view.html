@@ -1,0 +1,45 @@
+{% extends 'ems/base.html' %}
+{% block title %}My Profile — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-person-circle me-2"></i>My Profile</h1>
+    <a href="{% url 'profile_edit' %}" class="btn btn-primary">
+      <i class="bi bi-pencil me-2"></i>Edit Profile
+    </a>
+  </div>
+
+  <div class="ems-card p-4">
+    <div class="d-flex align-items-center gap-4 mb-4">
+      <img src="{{ profile.get_avatar_url }}" alt="Avatar" class="profile-avatar-lg"/>
+      <div>
+        <h3 class="mb-1">{{ user.get_full_name|default:user.username }}</h3>
+        <p class="text-muted mb-1">@{{ user.username }}</p>
+        <span class="badge bg-primary">{{ profile.get_role_display }}</span>
+      </div>
+    </div>
+
+    <hr/>
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Email</label>
+        <div class="fw-500">{{ user.email|default:"—" }}</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Phone</label>
+        <div class="fw-500">{{ profile.phone|default:"—" }}</div>
+      </div>
+      <div class="col-12">
+        <label class="form-label text-muted small">Bio</label>
+        <div>{{ profile.bio|default:"No bio added yet." }}</div>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label text-muted small">Member Since</label>
+        <div>{{ user.date_joined|date:"F j, Y" }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

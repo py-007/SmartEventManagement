@@ -1,0 +1,85 @@
+{% extends 'ems/base.html' %}
+{% load ems_tags %}
+{% block title %}Attendees — {{ event.title }}{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="page-header mb-4">
+    <div>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+          <li class="breadcrumb-item"><a href="{% url 'manager_events' %}">My Events</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'event_detail' event.slug %}">{{ event.title|truncatechars:30 }}</a></li>
+          <li class="breadcrumb-item active">Attendees</li>
+        </ol>
+      </nav>
+      <h1 class="page-title">Attendees: {{ event.title }}</h1>
+    </div>
+  </div>
+
+  <!-- Stats Row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="mini-stat bg-success text-white">
+        <div class="mini-stat-val">{{ event.confirmed_registrations }}</div>
+        <div class="mini-stat-lbl">Confirmed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mini-stat bg-warning text-dark">
+        <div class="mini-stat-val">{{ event.registrations.filter.count }}</div>
+        <div class="mini-stat-lbl">Waitlisted</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mini-stat bg-primary text-white">
+        <div class="mini-stat-val">{{ event.total_seats }}</div>
+        <div class="mini-stat-lbl">Total Seats</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="mini-stat bg-light text-dark border">
+        <div class="mini-stat-val">{{ event.occupancy_percentage }}%</div>
+        <div class="mini-stat-lbl">Occupancy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter -->
+  <div class="d-flex gap-2 mb-3 flex-wrap">
+    <a href="?" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-secondary{% endif %}">All</a>
+    <a href="?status=confirmed" class="btn btn-sm {% if status_filter == 'confirmed' %}btn-success{% else %}btn-outline-success{% endif %}">Confirmed</a>
+    <a href="?status=waitlisted" class="btn btn-sm {% if status_filter == 'waitlisted' %}btn-warning{% else %}btn-outline-warning{% endif %}">Waitlisted</a>
+    <a href="?status=cancelled" class="btn btn-sm {% if status_filter == 'cancelled' %}btn-danger{% else %}btn-outline-danger{% endif %}">Cancelled</a>
+  </div>
+
+  <div class="ems-card">
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead>
+          <tr>
+            <th>Reg ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th>Registered</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for reg in registrations %}
+          <tr>
+            <td><code class="reg-id">{{ reg.registration_id }}</code></td>
+            <td>{{ reg.user.get_full_name|default:reg.user.username }}</td>
+            <td class="text-muted small">{{ reg.user.email }}</td>
+            <td><span class="badge bg-{{ reg.status|badge_color }}">{{ reg.get_status_display }}</span></td>
+            <td class="text-muted small">{{ reg.registered_at|date:"M d, Y · g:i A" }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="text-center text-muted py-4">No registrations found</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

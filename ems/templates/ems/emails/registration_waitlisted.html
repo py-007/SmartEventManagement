@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8"/>
+  <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background:#f8f9fa; margin:0; padding:0; }
+    .container { max-width:580px; margin:40px auto; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 4px 24px rgba(0,0,0,.08); }
+    .header { background:linear-gradient(135deg, #f77f00, #d62828); padding:36px 40px; text-align:center; }
+    .header h1 { color:#fff; margin:0; font-size:1.6rem; }
+    .header p { color:rgba(255,255,255,.85); margin:6px 0 0; }
+    .body { padding:36px 40px; }
+    .reg-box { background:#fff8f0; border:2px dashed #f77f00; border-radius:12px; padding:20px 24px; margin:24px 0; text-align:center; }
+    .reg-id { font-size:1.6rem; font-weight:800; color:#f77f00; font-family:monospace; letter-spacing:2px; }
+    .footer { text-align:center; padding:20px 40px; color:#aaa; font-size:0.82rem; background:#f8f9fa; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📋 You're on the Waitlist</h1>
+    <p>{{ event.title }}</p>
+  </div>
+  <div class="body">
+    <p>Hi <strong>{{ user.first_name|default:user.username }}</strong>,</p>
+    <p>This event is currently full, but you've been added to the waitlist. Your waitlist ID is:</p>
+
+    <div class="reg-box">
+      <div style="color:#888;font-size:.85rem;margin-bottom:6px;">WAITLIST ID</div>
+      <div class="reg-id">{{ registration.registration_id }}</div>
+    </div>
+
+    <p>If a spot opens up, you'll automatically be confirmed and receive a new email notification.</p>
+    <p>
+      <strong>Event:</strong> {{ event.title }}<br/>
+      <strong>Date:</strong> {{ event.date|date:"F j, Y" }} at {{ event.date|date:"g:i A" }}<br/>
+      <strong>Venue:</strong> {{ event.venue }}
+    </p>
+    <p style="color:#888;font-size:.9rem;">You can cancel your waitlist spot from your dashboard at any time.</p>
+  </div>
+  <div class="footer">
+    © EMS — Event Management System<br/>
+    This is an automated email, please do not reply.
+  </div>
+</div>
+</body>
+</html>

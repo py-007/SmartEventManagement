@@ -1,0 +1,54 @@
+{% extends 'ems/base.html' %}
+{% block title %}Edit Profile — EMS{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:600px">
+  <div class="page-header mb-4">
+    <h1 class="page-title"><i class="bi bi-pencil me-2"></i>Edit Profile</h1>
+    <a href="{% url 'profile_view' %}" class="btn btn-outline-secondary">
+      <i class="bi bi-arrow-left me-1"></i>Back
+    </a>
+  </div>
+
+  <div class="ems-card p-4">
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-md-6">
+          <label class="form-label">Last Name</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Email Address</label>
+          {{ form.email }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Phone</label>
+          {{ form.phone }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Bio</label>
+          {{ form.bio }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Profile Avatar</label>
+          {% if request.user.profile.avatar %}
+          <div class="mb-2">
+            <img src="{{ request.user.profile.avatar.url }}" height="60" class="rounded-circle border"/>
+            <small class="text-muted ms-2">Current avatar</small>
+          </div>
+          {% endif %}
+          {{ form.avatar }}
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-4 px-4">
+        <i class="bi bi-check-lg me-2"></i>Save Changes
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
